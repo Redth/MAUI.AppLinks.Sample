@@ -4,6 +4,10 @@ Sample .NET MAUI app which supports deep linking
 
 # Android
 
+Android supports [Handling Android App Links](https://developer.android.com/training/app-links) with Intent Filters on Activities.
+
+These links can be based on a custom scheme (eg: `myappname://`) or use a `http`/`https` scheme.  You do not need to do anything special to handle custom scheme links, however this sample shows how to support handling `http`/`https` url's which requires proving ownership of the domain, as well as hosting a well known association json file on the domain that describes the relationship with your app.
+
 ## 1. Verify Domain Ownership
 
 First you need to verify your ownership of the domain in the [Google Search Console](https://search.google.com/search-console).
@@ -85,6 +89,10 @@ adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROW
 
 
 # iOS
+
+Apple also supports registering your app to handle both custom URI schemes (eg: `myappname://`) and `http`/`https` schemes, however this sample focuses on `http`/`https` (custom schemes require additional setup in your `Info.plist` which is not covered here).
+
+Apple refers to handling `http`/`https` urls as [Supporting Universal Links in your app](https://developer.apple.com/documentation/xcode/supporting-universal-links-in-your-app).  Similar to Google, Apple requires that you host a well-known `apple-app-site-association` file at the domain you want to handle links for, containing JSON information describing the relationship to your app.  This is a way for Apple to verify ownership for handling urls so not just anyone can intercept your site's links in their own apps.
 
 ## 1. Host .well-known Association File
 
