@@ -75,7 +75,7 @@ builder.ConfigureLifecycleEvents(lifecycle =>
 });
 ```
 
-### 5. Testing A URL
+## 5. Testing A URL
 
 You can use `adb` to simulate opening a URL to ensure your app links work correctly:
 
@@ -88,28 +88,26 @@ adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROW
 
 ## 1. Host .well-known Association File
 
+Create a `apple-app-site-association` json file hosted on your domain's server under the `/.well-known/` folder.  Your URL should look like `https://redth.dev/.well-known/apple-app-site-association`.  The file contents will need to include:
+
 ```
 {
-  "applinks": {
-      "details": [
-           {
-             "appIDs": [ "TEAMIDHERE.dev.redth.applinkssample" ],
-             "components": [
-               {
-                  "#": "no_universal_links",
-                  "exclude": true,
-                  "comment": "Matches any URL with a fragment that equals no_universal_links and instructs the system not to open it as a universal link."
-               },
-               {
-                  "/": "/*",
-                  "comment": "Matches any URL with a path that starts with /."
-               }
-             ]
-           }
-       ]
-   }
+    "activitycontinuation": {
+        "apps": [ "85HMA3YHJX.dev.redth.applinkssample" ]
+    },
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "85HMA3YHJX.dev.redth.applinkssample",
+                "paths": [ "*", "/*" ]
+            }
+        ]
+    }
 }
 ```
+
+Be sure to replace the app identifiers with the correct values for your own app.  This step required some trial and error to get working.  There are a number of posts online stating that the `activitycontinuation` was required to get things working.  I had a similar experience.
 
 ## 2. Add Domain Association Entitlements to your App
 
@@ -117,8 +115,22 @@ You will need to add custom entitlements to your app to declare the associated d
 
 ```
 <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
-	<CustomEntitlements Include="com.apple.developer.associated-domains" Type="StringArray" Value="applinks:redth.dev" />
-</ItemGroup>
+
+		<!-- For debugging, use '?mode=developer' for debug to bypass apple's CDN cache -->
+		<CustomEntitlements
+			Condition="$(Configuration) == 'Debug'"
+			Include="com.apple.developer.associated-domains"
+			Type="StringArray"
+			Value="applinks:redth.dev?mode=developer" />
+
+		<!-- Non debugging, use normal applinks:url value -->
+		<CustomEntitlements
+			Condition="$(Configuration) != 'Debug'"
+			Include="com.apple.developer.associated-domains"
+			Type="StringArray"
+			Value="applinks:redth.dev" />
+
+	</ItemGroup>
 ```
 
 Be sure to replace the `applinks:redth.dev` with the correct value for your own domain.  Also notice the `ItemGroup`'s `Condition` which only includes the entitlement when the app is built for iOS or MacCatalyst.
@@ -126,7 +138,7 @@ Be sure to replace the `applinks:redth.dev` with the correct value for your own 
 
 ## 3. Add Lifecycle Handlers
 
-In your `MauiProgram.cs` file, setup your lifecycle events with the `builder`:
+In your `MauiProgram.cs` file, setup your lifecycle events with the `builder` (if you're not using 'Scenes' for multi window support in your app, you can omit the lifecycle handlers for Scene methods):
 
 ```
 builder.ConfigureLifecycleEvents(lifecycle =>
@@ -134,28 +146,32 @@ builder.ConfigureLifecycleEvents(lifecycle =>
     #if IOS || MACCATALYST
     lifecycle.AddiOS(ios =>
     {
-        ios.SceneWillConnect((scene, sceneSession, sceneConnectionOptions) =>
+        ios.FinishedLaunching((app, data)
+            => HandleAppLink(app.UserActivity));
+
+        ios.ContinueUserActivity((app, userActivity, handler)
+            => HandleAppLink(userActivity));
+
+        if (OperatingSystem.IsIOSVersionAtLeast(13) || OperatingSystem.IsMacCatalystVersionAtLeast(13))
         {
-            var appLinkUserActivity = sceneConnectionOptions.UserActivities.ToArray().FirstOrDefault(act => act.ActivityType == NSUserActivityType.BrowsingWeb);
+            ios.SceneWillConnect((scene, sceneSession, sceneConnectionOptions)
+                => HandleAppLink(sceneConnectionOptions.UserActivities.ToArray()
+                    .FirstOrDefault(a => a.ActivityType == NSUserActivityType.BrowsingWeb)));
 
-            if (appLinkUserActivity is not null && appLinkUserActivity.WebPageUrl is not null)
-            {
-                HandleAppLink(appLinkUserActivity.WebPageUrl.ToString());
-            }
-        });
-
-        ios.SceneContinueUserActivity((scene, userActivity) =>
-        {
-            if (userActivity.ActivityType == NSUserActivityType.BrowsingWeb && userActivity.WebPageUrl is not null)
-            {
-                return HandleAppLink(userActivity.WebPageUrl.ToString());
-            }
-
-            return false;
-        });
+            ios.SceneContinueUserActivity((scene, userActivity)
+                => HandleAppLink(userActivity));
+        }
     });
     #elif ANDROID
         // ...
     #endif
 });
 ```
+
+## 4. Testing a URL
+
+Testing on iOS can be a bit more tedious than Android.  It seems many have mixed results with iOS Simulators working (I was not able to get the Simulator working), so a device may be required, but is at least recommended.
+
+Once you've deployed your app to your device, you can test that everything is setup correctly by going to `Settings -> Developer` and under `Universal Links`, toggle on `Associated Domains Development` and then go into `Diagnostics`.  Here you can enter your URL (in this case `https://redth.dev`) and if everything is setup correctly you should see a green checkmark with `Opens Installed Application` and the App ID of your app.
+
+It's also worth noting again that from step 2, if you add the applink entitlement with `?mode=developer` to your app, it will bypass Apple's CDN cache when testing/debugging, which is helpful for iterating on your `apple-app-site-association` json file.
