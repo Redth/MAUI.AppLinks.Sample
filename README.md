@@ -87,6 +87,7 @@ You can use `adb` to simulate opening a URL to ensure your app links work correc
 adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d "https://redth.dev/items/1234"
 ```
 
+---------
 
 # iOS
 
