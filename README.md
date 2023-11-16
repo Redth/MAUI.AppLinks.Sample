@@ -116,21 +116,21 @@ You will need to add custom entitlements to your app to declare the associated d
 ```
 <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
 
-		<!-- For debugging, use '?mode=developer' for debug to bypass apple's CDN cache -->
-		<CustomEntitlements
-			Condition="$(Configuration) == 'Debug'"
-			Include="com.apple.developer.associated-domains"
-			Type="StringArray"
-			Value="applinks:redth.dev?mode=developer" />
+    <!-- For debugging, use '?mode=developer' for debug to bypass apple's CDN cache -->
+    <CustomEntitlements
+        Condition="$(Configuration) == 'Debug'"
+        Include="com.apple.developer.associated-domains"
+        Type="StringArray"
+        Value="applinks:redth.dev?mode=developer" />
 
-		<!-- Non debugging, use normal applinks:url value -->
-		<CustomEntitlements
-			Condition="$(Configuration) != 'Debug'"
-			Include="com.apple.developer.associated-domains"
-			Type="StringArray"
-			Value="applinks:redth.dev" />
+    <!-- Non debugging, use normal applinks:url value -->
+    <CustomEntitlements
+        Condition="$(Configuration) != 'Debug'"
+        Include="com.apple.developer.associated-domains"
+        Type="StringArray"
+        Value="applinks:redth.dev" />
 
-	</ItemGroup>
+</ItemGroup>
 ```
 
 Be sure to replace the `applinks:redth.dev` with the correct value for your own domain.  Also notice the `ItemGroup`'s `Condition` which only includes the entitlement when the app is built for iOS or MacCatalyst.
