@@ -62,8 +62,23 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 	</ItemGroup>
 
+
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
-		<CustomEntitlements Include="com.apple.developer.associated-domains" Type="StringArray" Value="applinks:redth.dev" />
+
+		<!-- For debugging, use '?mode=developer' for debug to bypass apple's CDN cache -->
+		<CustomEntitlements
+			Condition="$(Configuration) == 'Debug'"
+			Include="com.apple.developer.associated-domains"
+			Type="StringArray"
+			Value="applinks:redth.dev?mode=developer" />
+
+		<!-- Non debugging, use normal applinks:url value -->
+		<CustomEntitlements
+			Condition="$(Configuration) != 'Debug'"
+			Include="com.apple.developer.associated-domains"
+			Type="StringArray"
+			Value="applinks:redth.dev" />
+
 	</ItemGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
