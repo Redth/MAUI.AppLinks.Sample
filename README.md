@@ -6,7 +6,7 @@ Sample .NET MAUI app which supports deep linking
 
 Android supports [Handling Android App Links](https://developer.android.com/training/app-links) with Intent Filters on Activities.
 
-These links can be based on a custom scheme (eg: `myappname://`) or use a `http`/`https` scheme.  You do not need to do anything special to handle custom scheme links, however this sample shows how to support handling `http`/`https` url's which requires proving ownership of the domain, as well as hosting a well known association json file on the domain that describes the relationship with your app.
+These links can be based on a custom scheme (eg: `myappname://`) or use a `http`/`https` scheme.  You do not need to do anything special to handle custom scheme links, however this sample shows how to support handling `http`/`https` url's which requires proving ownership of the domain, as well as hosting a well known association json file on the domain that describes the relationship with your app, allowing Android to verify that the app trying to handle the url has ownership of the url's domain so not just any app can intercept your links.
 
 ## 1. Verify Domain Ownership
 
