@@ -12,7 +12,7 @@ First you need to verify your ownership of the domain in the [Google Search Cons
 
 Create an `assetlinks.json` file hosted on your domain's server under the `/.well-known/` folder.  Your URL should look like `https://redth.dev/.well-known/assetlinks.json`.  The file contents will need to include:
 
-```
+```json
 [
     {
         "relation": ["delegate_permission/common.handle_all_urls"],
@@ -36,7 +36,7 @@ You can use the [Statement List Generator Tool](https://developers.google.com/di
 
 You can reuse the `Platforms/Android/MainActivity.cs` in your MAUI app by adding the following class attribute to it:
 
-```
+```csharp
 [IntentFilter(
     new string[] { Intent.ActionView },
     AutoVerify = true,
@@ -53,7 +53,7 @@ You will also need to mark your activity as exportable.  You can do this by addi
 
 In your `MauiProgram.cs` file, setup your lifecycle events with the `builder`:
 
-```
+```csharp
 builder.ConfigureLifecycleEvents(lifecycle =>
 {
     #if IOS || MACCATALYST
@@ -79,7 +79,7 @@ builder.ConfigureLifecycleEvents(lifecycle =>
 
 You can use `adb` to simulate opening a URL to ensure your app links work correctly:
 
-```
+```shell
 adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d "https://redth.dev/items/1234"
 ```
 
@@ -90,7 +90,7 @@ adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROW
 
 Create a `apple-app-site-association` json file hosted on your domain's server under the `/.well-known/` folder.  Your URL should look like `https://redth.dev/.well-known/apple-app-site-association`.  The file contents will need to include:
 
-```
+```json
 {
     "activitycontinuation": {
         "apps": [ "85HMA3YHJX.dev.redth.applinkssample" ]
@@ -113,7 +113,7 @@ Be sure to replace the app identifiers with the correct values for your own app.
 
 You will need to add custom entitlements to your app to declare the associated domain(s).  You can do this either by adding an Entitlements.plist file to your app, or you can simply add the following to your .csproj file in your MAUI app:
 
-```
+```xml
 <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' Or $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
 
     <!-- For debugging, use '?mode=developer' for debug to bypass apple's CDN cache -->
@@ -140,7 +140,7 @@ Be sure to replace the `applinks:redth.dev` with the correct value for your own 
 
 In your `MauiProgram.cs` file, setup your lifecycle events with the `builder` (if you're not using 'Scenes' for multi window support in your app, you can omit the lifecycle handlers for Scene methods):
 
-```
+```csharp
 builder.ConfigureLifecycleEvents(lifecycle =>
 {
     #if IOS || MACCATALYST
