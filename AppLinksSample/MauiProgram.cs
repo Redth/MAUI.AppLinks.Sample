@@ -45,12 +45,13 @@ namespace AppLinksSample
 
 							if (action == Android.Content.Intent.ActionView && data is not null)
 							{
-								HandleAppLink(data);
+								activity.Finish();
+								System.Threading.Tasks.Task.Run(() => HandleAppLink(data));
 							}
 						});
 					});
 #endif
-				});
+                });
 
 #if DEBUG
 			builder.Logging.AddDebug();
